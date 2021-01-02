@@ -20,39 +20,39 @@ Feel free to fork and improve according to your needs.
 There are five root packages in the project:
 
 1. Configuration package contains a configurations for devices (grouped by protocol and device type). This package contains also CSV logging settings and JSON request settings (authentication data and the server URL).
-2. Device package contains an implementation for handling devices. Each device is configured in the „Configuration” package.
+2. Devices package contains an implementation for handling devices. Each device is configured in the „Configuration” package.
 3. Loggers package. Here are loggers for devices defined. Each device type (ex. Santerno Solar  Inverter, DS18B20 sensor etc.) has own data logger.
-4. Logdata contains implementation for CSV files writing and encrypted JSON request (preparing encrypted device data for server). See the second project for handling JSON data: https://github.com/id872/devmon
-5. Request contains implementation for POST request for encrypted JSON data. Device data compression and encryption is implemented in the aes_helper.py
+4. Logdata contains implementation for CSV files writing and for encrypted JSON request. See the second project for handling JSON data: https://github.com/id872/devmon
+5. Request contains implementation for POST request for encrypted JSON data. Device data compression and encryption is implemented in the *aes_helper.py*
 
 Adding devices that are already implemented is easy – configuration update only.
 To handle new device for logging, following items need to be created:
 
+* (*data_config.py*) new JsonRequestType for the new device
 * (**2**) device implementation
 * (**1**) device configuration
 * (**3**) device logger
-* and new JsonRequestType for new device (data_config.py)
 
-The application is quite flexible. It logs devices data to proper, defined locations in the configuration package (**1**). JSON data manager checks server response and clears devices readouts if it was inserted into DB.
+The application is quite flexible. It logs devices data to proper, defined locations in the configuration package (**1**). JSON data manager checks the server response and clears devices readouts if it was inserted into DB.
 
 Like mentioned before, devices data can be logged into CSV files.
-CSV files are created every new day. If there is no “today’s” file, a new file is created. If the file already exists, device readout is appended only (if there is a power cut for a while, Raspberry Pi will boot up and continue to write existing files). There is one CSV file for a group of devices. So one file per day for DS18B20 sensors, Santerno inverters etc. See the listing section to see CSV content examples.
+CSV files are created every new day. If there is no “today’s file“, a new file is created. If the file already exists, device readout is appended only (if there is a power cut for a while, Raspberry Pi will boot up and continue to write existing files). There is one CSV file for a group of devices. So one file per day for DS18B20 sensors, Santerno inverters etc. Have a look further for CSV example files.
 
-# Compressed, encrypted JSON request mechanism 
-It is used for inserting devices readouts into a remote database. JSON request contains following keys:
-* data – encrypted JSON data containing username, password and devices readouts
-* hash – API hash for particular user (encoded in base64)
+# Compressed, encrypted JSON request mechanism
+It is used in order to insert devices readouts into the remote database. The final JSON request contains following keys:
+* data – compressed and encrypted JSON data containing username, password and devices readouts (base64 string)
+* hash – API hash for particular user (base64 string)
 
-JSON request data is encrypted by *api_key* from auth_conf.json file in the configs.json package.
+JSON request data is encrypted by AES algorith with the key: *api_key* from *auth_conf.json* file in the configs.json package.
 The same *api_key* for particular user need to be present in the remote database to allow a web application to decrypt devices data.
 
-There are following actions performed to send devices data to a database on a server.
-1. json_data_manager.py prepares JSON request data with devices readouts
-2. aes_helper.py compresses the JSON data to zlib format and encrypts compressed data. Output is base64 string.
-3. post_request.py sends encrypted data (base64 string) to the server via POST request.
+There are following actions performed to send devices data into the database:
+1. *json_data_manager.py* prepares JSON request data with devices readouts.
+2. *aes_helper.py* compresses the JSON data to zlib format and encrypts compressed data.
+3. *post_request.py* sends encrypted data to the server via POST request.
 
 # Application run
-It can be run with screen:
+It is useful to run the application with the screen command:
 ```shell
 screen -d -m python3 /root/data_logger/device_data_logger.py
 ```
@@ -137,4 +137,18 @@ Date_Time,Room_temperature
 21-12-20_15:30:01,24.45
 21-12-20_15:35:02,24.46
 21-12-20_15:40:02,24.44
+```
+
+## Power_2020-10-20_07:23:07.csv
+```
+Date_Time,Santerno1_ac_power,Santerno1_dc_voltage,Santerno1_dc_current,Santerno1_cpu_temperature,Santerno1_radiator_temperature,Santerno1_power_produced,Santerno2_ac_power,Santerno2_dc_voltage,Santerno2_dc_current,Santerno2_cpu_temperature,Santerno2_radiator_temperature,Santerno2_power_produced
+20-10-20_07:23:05,12,355.9,0.05,19.88,12.48,11500.23,0,413.9,0.0,19.07,12.58,11482.18
+20-10-20_07:23:37,9,358.1,0.07,20.0,12.54,11500.23,0,416.4,0.0,19.19,12.61,11482.18
+20-10-20_07:26:10,14,370.0,0.07,20.57,12.82,11500.23,10,362.9,0.07,19.74,12.75,11482.18
+20-10-20_07:26:42,15,376.1,0.07,20.67,12.89,11500.23,10,365.9,0.07,19.84,12.85,11482.18
+20-10-20_07:27:14,16,376.0,0.07,20.79,12.93,11500.23,10,360.0,0.08,19.92,12.96,11482.18
+20-10-20_07:27:47,15,382.1,0.07,20.89,13.01,11500.23,14,362.9,0.08,20.05,13.04,11482.18
+20-10-20_07:28:19,16,382.1,0.08,21.0,13.09,11500.23,12,365.9,0.08,20.12,13.11,11482.18
+20-10-20_07:28:51,16,391.0,0.08,21.08,13.15,11500.23,13,365.9,0.09,20.21,13.16,11482.18
+20-10-20_07:29:23,19,394.2,0.08,21.2,13.21,11500.23,13,365.9,0.09,20.29,13.26,11482.18
 ```
