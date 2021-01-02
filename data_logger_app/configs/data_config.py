@@ -3,8 +3,8 @@ from enum import Enum
 
 
 class JsonRequestType(Enum):
-    MODBUS = 'power_readouts'
-    W1 = 'temperature_readouts'
+    SANTERNO = 'santerno_readouts'
+    DS18B20 = 'ds18b20_readouts'
     PURIFIER = 'purifier_readouts'
     TASMOTA_PLUG = 'tasmota_readouts'
 
@@ -13,8 +13,8 @@ class CsvConfig:
     LOGGING_ENABLED = True
     LOG_ROOT_DIR = '/home/logs'
 
-    MODBUS_LOG_DIR_AND_FILE_PREFIX = 'Power'
-    W1_LOG_DIR_AND_FILE_PREFIX = 'Temperature'
+    SANTERNO_LOG_DIR_AND_FILE_PREFIX = 'Power'
+    DS18B20_LOG_DIR_AND_FILE_PREFIX = 'Temperature'
     PURIFIER_LOG_DIR_AND_FILE_PREFIX = 'Purifier'
     TASMOTA_PLUG_LOG_DIR_AND_FILE_PREFIX = 'Tasmota'
 

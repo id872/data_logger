@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class W1Config:
+class DS18B20Config:
     DEV_ID_NAME = {
         '02162cffffff': 'Room'
     }

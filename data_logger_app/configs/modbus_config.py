@@ -2,7 +2,7 @@
 from minimalmodbus import MODE_RTU
 
 
-class ModbusConfig:
+class SanternoConfig:
     DEV_ID_NAME = {
         1: 'Santerno1',
         2: 'Santerno2'

@@ -14,7 +14,6 @@ _LOGGER = logging.getLogger('DevDataLogger')
 
 
 class W1Ds18b20(BaseDevice):
-    """ This is DS18B20 sensor class """
     MAX_INIT_ATTEMPTS = 10
     RE_INIT_WAIT_TIME_SEC = 2
     MAX_COUNT_MEASURES = 45

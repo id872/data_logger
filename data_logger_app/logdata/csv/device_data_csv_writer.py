@@ -9,10 +9,6 @@ _LOGGER = logging.getLogger('DevDataLogger')
 
 
 class DeviceDataCsvWriter:
-    """
-    This class writes the device data to correct csv file
-    """
-
     def __init__(self):
         self.csv_writer = None
 

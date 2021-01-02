@@ -16,7 +16,6 @@ def reload_json_config():
 
 
 class DataManager:
-    """ This is main class for logging data from devices """
     __manager_csv = CsvDataManager()
     __manager_json = JsonDataManager()
 
@@ -38,12 +37,6 @@ class DataManager:
 
     @classmethod
     def save_data(cls, dev_data):
-        """
-        Device returns data in JSON format. It contains
-        container_name key indicating from which device data came
-        :param dev_data: dict
-        :return: None
-        """
         if None in dev_data.dev_data_readouts:
             _LOGGER.debug("No data: %s for %s",
                           dev_data, dev_data.log_dir_file_prefix)

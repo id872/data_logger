@@ -6,7 +6,7 @@ import logging
 from time import sleep
 
 from configs.data_config import CsvConfig, JsonRequestType
-from configs.w1_config import W1Config
+from configs.w1_config import DS18B20Config
 from devices.w1_ds18b20 import W1Ds18b20
 from logdata.data_manager import DataManager
 from logdata.json.dev_data import DevData
@@ -31,7 +31,7 @@ class Ds18b20Logger:
     def __initialize_sensors(self):
         self.sensors = []
 
-        for s_id, s_name in W1Config.DEV_ID_NAME.items():
+        for s_id, s_name in DS18B20Config.DEV_ID_NAME.items():
             _LOGGER.debug('Initializing [%s] sensor', s_name)
             self.sensors.append(W1Ds18b20(sensor_name=s_name,
                                           sensor_id=s_id))
@@ -46,8 +46,8 @@ class Ds18b20Logger:
     def __write_temperatures(self):
         sleep(self.READ_TEMPS_EVERY_SEC * 5)
         while True:
-            w1_data = DevData(CsvConfig.W1_LOG_DIR_AND_FILE_PREFIX,
-                              JsonRequestType.W1)
+            w1_data = DevData(CsvConfig.DS18B20_LOG_DIR_AND_FILE_PREFIX,
+                              JsonRequestType.DS18B20)
 
             for sensor in self.sensors:
                 data = sensor.read_data_json()

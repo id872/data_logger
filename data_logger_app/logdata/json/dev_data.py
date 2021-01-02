@@ -3,8 +3,6 @@ from time import strftime
 
 
 class DevData:
-    """ Class for device(s) data storage. """
-
     def __init__(self, csv_file_prefix, json_request_type):
         self.log_dir_file_prefix = csv_file_prefix
         self.log_date_time_csv = strftime('%d-%m-%y_%H:%M:%S')

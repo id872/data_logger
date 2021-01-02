@@ -8,7 +8,7 @@ from time import sleep
 
 import minimalmodbus
 
-from configs.modbus_config import ModbusConfig
+from configs.modbus_config import SanternoConfig
 from devices.device import BaseDevice, dev_read_time_decorator
 
 _LOGGER = logging.getLogger('DevDataLogger')
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger('DevDataLogger')
 def modbus_wait_for_not_busy(func_decorated):
     def func_wrapper(self, *args, **kwargs):
         while self.is_busy():
-            sleep(ModbusConfig.RS_485_MODBUS_TIMEOUT)
+            sleep(SanternoConfig.RS_485_MODBUS_TIMEOUT)
             continue
         return func_decorated(self, *args, **kwargs)
 
@@ -25,7 +25,6 @@ def modbus_wait_for_not_busy(func_decorated):
 
 
 class ModbusSanterno(BaseDevice):
-    """ Class for Santerno inverter. """
     REGISTER_CURRENT_POWER = 1658
     REGISTER_FIELD_VOLTAGE = 1650
     REGISTER_FIELD_CURRENT = 1652
@@ -34,7 +33,7 @@ class ModbusSanterno(BaseDevice):
     REGISTER_RADIATOR_TEMP = 1709
 
     MAX_ATTEMPTS_FOR_VALUE = 6
-    RETRY_TIME = ModbusConfig.RS_485_MODBUS_TIMEOUT + 0.01
+    RETRY_TIME = SanternoConfig.RS_485_MODBUS_TIMEOUT + 0.01
     H_THRESHOLD_WATT = 3600
 
     MEASURING_ACTIVE_THRESHOLD_WATT = 10
@@ -69,12 +68,12 @@ class ModbusSanterno(BaseDevice):
             _LOGGER.error(error)
 
         if self.inverter_instrument:
-            self.inverter_instrument.serial.baudrate = ModbusConfig.RS_485_BAUDRATE
-            self.inverter_instrument.serial.stopbits = ModbusConfig.RS_485_STOP_BITS
-            self.inverter_instrument.mode = ModbusConfig.RS_485_MODBUS_MODE
-            self.inverter_instrument.serial.timeout = ModbusConfig.RS_485_MODBUS_TIMEOUT
+            self.inverter_instrument.serial.baudrate = SanternoConfig.RS_485_BAUDRATE
+            self.inverter_instrument.serial.stopbits = SanternoConfig.RS_485_STOP_BITS
+            self.inverter_instrument.mode = SanternoConfig.RS_485_MODBUS_MODE
+            self.inverter_instrument.serial.timeout = SanternoConfig.RS_485_MODBUS_TIMEOUT
             self.inverter_instrument.close_port_after_each_call = \
-                ModbusConfig.RS_485_CLOSE_PORT_AFTER_CALL
+                SanternoConfig.RS_485_CLOSE_PORT_AFTER_CALL
             _LOGGER.debug('Inverter %s on %s is ready', self.dev_name, self.tty_port)
             return True
         _LOGGER.debug('Inverter [%s] is not initialized', self.dev_name)
@@ -114,7 +113,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def _read_current_power(self):
-        """ Reads Inverters current power generated (AC) """
+        """ Reads the inverter current power generated (AC) """
 
         curr_pwr = self.__read_register(self.REGISTER_CURRENT_POWER)
 
@@ -124,7 +123,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def _read_produced_power(self):
-        """ Reads Inverters total power produced (kWh) """
+        """ Reads the inverter total power produced (kWh) """
 
         pwr = self.__read_register(self.REGISTER_PRODUCED_POWER, 2)
 
@@ -133,7 +132,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def _read_cpu_temperature(self):
-        """ Reads Inverters CPU temperature """
+        """ Reads the inverter CPU temperature """
 
         cpu_temp = self.__read_register(self.REGISTER_CPU_TEMP)
 
@@ -143,7 +142,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def _read_radiator_temperature(self):
-        """ Reads Inverters radiator temperature """
+        """ Reads the inverter radiator temperature """
 
         radiator_temp = self.__read_register(self.REGISTER_RADIATOR_TEMP)
 
@@ -153,7 +152,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def _read_field_voltage(self):
-        """ Reads Inverters DC Voltage """
+        """ Reads the inverter DC Voltage """
 
         voltage = self.__read_register(self.REGISTER_FIELD_VOLTAGE)
 
@@ -163,7 +162,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def _read_field_current(self):
-        """ Reads Inverters DC Current """
+        """ Reads the inverter DC Current """
 
         current = self.__read_register(self.REGISTER_FIELD_CURRENT)
 
@@ -173,7 +172,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def is_up(self):
-        """ Checks if Inverters produces power """
+        """ Checks if the inverter produces power """
 
         power_val = self._read_current_power()
         return power_val is not None and power_val > self.MEASURING_ACTIVE_THRESHOLD_WATT

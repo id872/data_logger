@@ -7,7 +7,7 @@ from os import path
 from time import sleep
 
 from configs.data_config import CsvConfig, JsonRequestType
-from configs.modbus_config import ModbusConfig
+from configs.modbus_config import SanternoConfig
 from devices.modbus_santerno import ModbusSanterno
 from logdata.data_manager import DataManager
 from logdata.json.dev_data import DevData
@@ -22,9 +22,9 @@ class SanternoLogger:
     MEASURE_EVERY_SEC = 30  # seconds
 
     def __init__(self):
-        if not path.exists(ModbusConfig.PORT_DEV):
+        if not path.exists(SanternoConfig.PORT_DEV):
             logging.error('Device port %s does not exist',
-                          ModbusConfig.PORT_DEV)
+                          SanternoConfig.PORT_DEV)
             return
 
         self.inverters = []
@@ -38,23 +38,23 @@ class SanternoLogger:
     def __inverters_re_init(self):
         self.inverters = []
 
-        for inv_adr, inv_name in ModbusConfig.DEV_ID_NAME.items():
+        for inv_adr, inv_name in SanternoConfig.DEV_ID_NAME.items():
             _LOGGER.debug('%s device initialization', inv_name)
             self.inverters.append(ModbusSanterno(inverter_name=inv_name,
                                                  slave_address=inv_adr,
-                                                 tty_port=ModbusConfig.PORT_DEV))
+                                                 tty_port=SanternoConfig.PORT_DEV))
 
     def __dev_port_and_inverter_monitoring(self):
         def is_dev_port_reattached():
-            if path.exists(ModbusConfig.PORT_DEV):
+            if path.exists(SanternoConfig.PORT_DEV):
                 return False
 
             _LOGGER.debug('Device (FTDI or UART) is detached or reattached (by system or user)')
 
             for port_num in range(0, 20):
-                dev_to_check = '{}{}'.format(ModbusConfig.PORT_DEV_NAME, port_num)
+                dev_to_check = '{}{}'.format(SanternoConfig.PORT_DEV_NAME, port_num)
                 if path.exists(dev_to_check):
-                    ModbusConfig.PORT_DEV = dev_to_check
+                    SanternoConfig.PORT_DEV = dev_to_check
                     self.__inverters_re_init()
                     _LOGGER.info('New device was initialized: %s', dev_to_check)
                     return True
@@ -80,8 +80,8 @@ class SanternoLogger:
                 sleep(self.INVERTER_ACTIVITY_CHECK_TIME_SEC)
                 continue
 
-            modbus_data = DevData(CsvConfig.MODBUS_LOG_DIR_AND_FILE_PREFIX,
-                                  JsonRequestType.MODBUS)
+            modbus_data = DevData(CsvConfig.SANTERNO_LOG_DIR_AND_FILE_PREFIX,
+                                  JsonRequestType.SANTERNO)
 
             for inverter in self.inverters:
                 dev_data_read = inverter.read_data_json()

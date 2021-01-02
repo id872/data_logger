@@ -15,7 +15,7 @@ from loggers.wifi.tasmota_plug_logger import TasmotaPlugLogger
 
 
 class DataMonitor:
-    """ Class for monitoring temperature, Air Purity and PV data"""
+    """ Application for monitoring temperature, Air Purity and PV data"""
     THIS_DIR = path.dirname(path.abspath(__file__))
     APP_LOGS_DIR = path.join(THIS_DIR, '.logs')
 

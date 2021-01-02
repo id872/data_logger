@@ -16,8 +16,6 @@ _LOGGER = logging.getLogger('DevDataLogger')
 
 
 class WifiAirPurifier(BaseDevice):
-    """ This is Xiaomi Air Purifier2 device class """
-
     def __init__(self, dev_name, dev_ip, dev_token):
         super().__init__(dev_name=dev_name, dev_id=dev_ip)
         self.device_token = dev_token

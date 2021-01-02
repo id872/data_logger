@@ -21,8 +21,6 @@ def wait_for_not_busy(func_decorated):
 
 
 class JsonDataManager:
-    """ Class for send JSON data """
-
     def __init__(self):
         self.__busy = False
         self.__json = JsonRequestHelper()
