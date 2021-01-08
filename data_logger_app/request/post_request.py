@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from app_logger import app_logging
 from configs.data_config import PostRequestConfig
 from request.aes_helper import AesHelper, OutputFmt
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class PostRequest:
@@ -31,5 +29,5 @@ class PostRequest:
         # catch expected & unexpected exceptions from urllib
         # pylint: disable=W0703
         except Exception as ex:
-            _LOGGER.debug('URL/HTTP/other error:\n%s', ex)
+            app_logging.debug('URL/HTTP/other error:\n%s', ex)
         return ''

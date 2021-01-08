@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 """Module for logging Inverters data (power, voltage, current, etc.)
 """
-
-import logging
 from os import path
 from time import sleep
 
+from app_logger import app_logging
 from configs.data_config import CsvConfig, JsonRequestType
 from configs.modbus_config import SanternoConfig
 from devices.modbus_santerno import ModbusSanterno
 from logdata.data_manager import DataManager
 from logdata.json.dev_data import DevData
 from loggers.utils.thread_maker import make_thread
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class SanternoLogger:
@@ -23,8 +20,8 @@ class SanternoLogger:
 
     def __init__(self):
         if not path.exists(SanternoConfig.PORT_DEV):
-            logging.error('Device port %s does not exist',
-                          SanternoConfig.PORT_DEV)
+            app_logging.error('Device port %s does not exist',
+                              SanternoConfig.PORT_DEV)
             return
 
         self.inverters = []
@@ -33,13 +30,13 @@ class SanternoLogger:
         make_thread(self.__dev_port_and_inverter_monitoring)
         make_thread(self.__measure)
 
-        _LOGGER.info('Measuring power...')
+        app_logging.info('Measuring power...')
 
     def __inverters_re_init(self):
         self.inverters = []
 
         for inv_adr, inv_name in SanternoConfig.DEV_ID_NAME.items():
-            _LOGGER.debug('%s device initialization', inv_name)
+            app_logging.debug('%s device initialization', inv_name)
             self.inverters.append(ModbusSanterno(inverter_name=inv_name,
                                                  slave_address=inv_adr,
                                                  tty_port=SanternoConfig.PORT_DEV))
@@ -49,23 +46,23 @@ class SanternoLogger:
             if path.exists(SanternoConfig.PORT_DEV):
                 return False
 
-            _LOGGER.debug('Device (FTDI or UART) is detached or reattached (by system or user)')
+            app_logging.debug('Device (FTDI or UART) is detached or reattached (by system or user)')
 
             for port_num in range(0, 20):
                 dev_to_check = '{}{}'.format(SanternoConfig.PORT_DEV_NAME, port_num)
                 if path.exists(dev_to_check):
                     SanternoConfig.PORT_DEV = dev_to_check
                     self.__inverters_re_init()
-                    _LOGGER.info('New device was initialized: %s', dev_to_check)
+                    app_logging.info('New device was initialized: %s', dev_to_check)
                     return True
-            logging.error('No FTDI/UART device found')
+            app_logging.error('No FTDI/UART device found')
             return False
 
         while True:
             if is_dev_port_reattached():
                 continue
 
-            _LOGGER.debug('Checking inverter activity function')
+            app_logging.debug('Checking inverter activity function')
 
             self.measure_active = any([inv.is_up() for inv in self.inverters])
             sleep(self.INVERTER_ACTIVITY_CHECK_TIME_SEC)
@@ -74,7 +71,7 @@ class SanternoLogger:
         sleep(self.MEASURE_EVERY_SEC)
         while True:
             if not self.measure_active:
-                _LOGGER.debug("Measure is not active.")
+                app_logging.debug("Measure is not active.")
                 ModbusSanterno.reload_minimalmodbus()
                 self.__inverters_re_init()
                 sleep(self.INVERTER_ACTIVITY_CHECK_TIME_SEC)
@@ -86,13 +83,13 @@ class SanternoLogger:
             for inverter in self.inverters:
                 dev_data_read = inverter.read_data_json()
                 if dev_data_read is None:
-                    _LOGGER.debug('Data [%s] could not be read.',
-                                  inverter.dev_name)
+                    app_logging.debug('Data [%s] could not be read.',
+                                      inverter.dev_name)
                     continue
 
                 modbus_data.dev_names.append(inverter.dev_name)
                 modbus_data.dev_data_readouts.append(inverter.read_data_json())
-                _LOGGER.debug(inverter)
+                app_logging.debug(inverter)
 
             if len(modbus_data.dev_data_readouts) > 0:
                 DataManager.save_data(modbus_data)

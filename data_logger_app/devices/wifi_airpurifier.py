@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 """ This module supports Xiaomi Air Purifier device
 """
-
 import logging
 from collections import OrderedDict
 
 from miio.airpurifier import AirPurifier
 
+from app_logger import app_logging
 from devices.device import BaseDevice, dev_read_time_decorator
 
 logging.getLogger('miio.miioprotocol').disabled = True
 logging.getLogger('miio.protocol').disabled = True
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class WifiAirPurifier(BaseDevice):
@@ -26,17 +24,17 @@ class WifiAirPurifier(BaseDevice):
             return True
         try:
             self.wifi_device = AirPurifier(self.dev_id, self.device_token)
-            _LOGGER.debug('AirPurifier device [%s] initialized', self.dev_id)
+            app_logging.debug('AirPurifier device [%s] initialized', self.dev_id)
             return True
         # catching expected & unexpected exceptions from third-party library
         # pylint: disable=W0703
         except Exception as ex:
-            _LOGGER.error('Initialization error. %s', ex)
+            app_logging.error('Initialization error. %s', ex)
         return False
 
     def __get_dev_resp(self):
         if not self.try_initialize():
-            _LOGGER.error('AirPurifier device is not initialized')
+            app_logging.error('AirPurifier device is not initialized')
             return None
         try:
             return self.wifi_device.status()
@@ -44,7 +42,7 @@ class WifiAirPurifier(BaseDevice):
         # pylint: disable=W0703
         except Exception as ex:
             self.read_error_count += 1
-            _LOGGER.error(ex)
+            app_logging.error(ex)
         return None
 
     @dev_read_time_decorator

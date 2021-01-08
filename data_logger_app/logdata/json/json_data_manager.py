@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-import logging
 from time import sleep
 
+from app_logger import app_logging
 from configs.data_config import JsonRequestType, PostRequestConfig
 from logdata.json.json_helper import JsonRequestHelper
 from loggers.utils.thread_maker import make_thread
 from request.post_request import PostRequest
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 def wait_for_not_busy(func_decorated):
@@ -40,8 +38,8 @@ class JsonDataManager:
         for jrt in JsonRequestType:
             req_data = self.__json.post_payload_data.get(jrt.value)
             if req_data and len(req_data) > 0:
-                _LOGGER.debug('Invalid response [%s] on [%s] request.',
-                              resp, jrt.value)
+                app_logging.debug('Invalid response [%s] on [%s] request.',
+                                  resp, jrt.value)
 
     def __send_json_data(self):
         self.__busy = True

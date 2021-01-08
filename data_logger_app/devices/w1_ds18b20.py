@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 """ This module supports DS18B20 temperature sensors
 """
-
-import logging
 from collections import Counter, OrderedDict
 from time import sleep
 
 from w1thermsensor import W1ThermSensor
 
+from app_logger import app_logging
 from devices.device import BaseDevice, dev_read_time_decorator
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class W1Ds18b20(BaseDevice):
@@ -32,18 +29,18 @@ class W1Ds18b20(BaseDevice):
         for _ in range(self.MAX_INIT_ATTEMPTS):
             try:
                 self.w1_sensor = W1ThermSensor(W1ThermSensor.THERM_SENSOR_DS18B20, self.dev_id)
-                _LOGGER.debug("Sensor '%s' ('%s') initialized", self.dev_id, self.dev_name)
+                app_logging.debug("Sensor '%s' ('%s') initialized", self.dev_id, self.dev_name)
                 return True
             # catching expected & unexpected exceptions from third-party library
             # pylint: disable=W0703
             except Exception as ex:
                 sleep(self.RE_INIT_WAIT_TIME_SEC)
-                _LOGGER.error('Sensor id=[%s] could not be initialized. Next attempt...',
-                              self.dev_id)
-                _LOGGER.debug(str(ex))
+                app_logging.error('Sensor id=[%s] could not be initialized. Next attempt...',
+                                  self.dev_id)
+                app_logging.debug(str(ex))
                 continue
 
-        _LOGGER.error("Sensor '%s' ('%s') could not be initialized", self.dev_id, self.dev_name)
+        app_logging.error("Sensor '%s' ('%s') could not be initialized", self.dev_id, self.dev_name)
         return False
 
     @dev_read_time_decorator
@@ -59,7 +56,7 @@ class W1Ds18b20(BaseDevice):
         if len(self.temperatures) > self.MAX_COUNT_MEASURES:
             self.temperatures.pop(0)
         if not self.try_initialize():
-            _LOGGER.debug('Sensor [%s] is not initialized', self.dev_name)
+            app_logging.debug('Sensor [%s] is not initialized', self.dev_name)
             return
         try:
             self.temperatures.append(w1_sensor_read_valid_temperature())
@@ -68,9 +65,9 @@ class W1Ds18b20(BaseDevice):
         # pylint: disable=W0703
         except Exception as ex:
             self.read_error_count += 1
-            _LOGGER.debug("Read temperature from sensor '%s' ('%s') failed.\n%s",
-                          self.dev_id, self.dev_name,
-                          ex)
+            app_logging.debug("Read temperature from sensor '%s' ('%s') failed.\n%s",
+                              self.dev_id, self.dev_name,
+                              ex)
 
     def __count_avg_temperature(self):
         """ Counts average temperature from temperature buffer """
@@ -83,8 +80,8 @@ class W1Ds18b20(BaseDevice):
         avg_temp = self.__count_avg_temperature()
 
         if self.obsolete_data_count >= self.MAX_OBSOLETE_DATA_THRESH:
-            _LOGGER.debug('Obsolete data. Obsolete data counter: %d',
-                          self.obsolete_data_count)
+            app_logging.debug('Obsolete data. Obsolete data counter: %d',
+                              self.obsolete_data_count)
             avg_temp = None
 
         return OrderedDict({

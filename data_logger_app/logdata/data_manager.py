@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
-
+from app_logger import app_logging
 from logdata.csv.csv_data_manager import CsvDataManager
 from logdata.json.json_data_manager import JsonDataManager
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 def get_json_post_payload_data():
@@ -38,8 +35,8 @@ class DataManager:
     @classmethod
     def save_data(cls, dev_data):
         if None in dev_data.dev_data_readouts:
-            _LOGGER.debug("No data: %s for %s",
-                          dev_data, dev_data.log_dir_file_prefix)
+            app_logging.debug("No data: %s for %s",
+                              dev_data, dev_data.log_dir_file_prefix)
             return
 
         cls.__feed_managers(dev_data)

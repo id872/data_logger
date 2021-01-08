@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 """ Module for communication with Santerno Inverters
 """
-import logging
 from collections import OrderedDict
 from importlib import reload
 from time import sleep
 
 import minimalmodbus
 
+from app_logger import app_logging
 from configs.modbus_config import SanternoConfig
 from devices.device import BaseDevice, dev_read_time_decorator
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 def modbus_wait_for_not_busy(func_decorated):
@@ -52,7 +50,7 @@ class ModbusSanterno(BaseDevice):
 
     @staticmethod
     def reload_minimalmodbus():
-        _LOGGER.debug('minimalmodbus reloading...')
+        app_logging.debug('minimalmodbus reloading...')
         reload(minimalmodbus)
 
     def __try_initialize(self):
@@ -65,7 +63,7 @@ class ModbusSanterno(BaseDevice):
         # catching expected & unexpected exceptions from third-party library
         # pylint: disable=W0703
         except Exception as error:
-            _LOGGER.error(error)
+            app_logging.error(error)
 
         if self.inverter_instrument:
             self.inverter_instrument.serial.baudrate = SanternoConfig.RS_485_BAUDRATE
@@ -74,15 +72,15 @@ class ModbusSanterno(BaseDevice):
             self.inverter_instrument.serial.timeout = SanternoConfig.RS_485_MODBUS_TIMEOUT
             self.inverter_instrument.close_port_after_each_call = \
                 SanternoConfig.RS_485_CLOSE_PORT_AFTER_CALL
-            _LOGGER.debug('Inverter %s on %s is ready', self.dev_name, self.tty_port)
+            app_logging.debug('Inverter %s on %s is ready', self.dev_name, self.tty_port)
             return True
-        _LOGGER.debug('Inverter [%s] is not initialized', self.dev_name)
+        app_logging.debug('Inverter [%s] is not initialized', self.dev_name)
         return False
 
     @modbus_wait_for_not_busy
     def __read_register(self, adr_reg, no_reg=1):
         if not self.inverter_instrument:
-            _LOGGER.error('Santerno device is not initialized')
+            app_logging.error('Santerno device is not initialized')
             return None
 
         attempts = 0
@@ -104,11 +102,11 @@ class ModbusSanterno(BaseDevice):
             sleep(self.RETRY_TIME)
 
         ModbusSanterno.__modbus_is_busy = False
-        _LOGGER.debug("[%s] Value could not be read. Attempts [%d] Modbus address [%s]\n%s",
-                      self.dev_name,
-                      attempts,
-                      adr_reg,
-                      '\n'.join(errors))
+        app_logging.debug("[%s] Value could not be read. Attempts [%d] Modbus address [%s]\n%s",
+                          self.dev_name,
+                          attempts,
+                          adr_reg,
+                          '\n'.join(errors))
 
         return None
 
@@ -172,7 +170,7 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def is_up(self):
-        """ Checks if the inverter produces power """
+        """ Checks if inverter produces power """
 
         power_val = self._read_current_power()
         return power_val is not None and power_val > self.MEASURING_ACTIVE_THRESHOLD_WATT

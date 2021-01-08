@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import logging
 from csv import DictWriter
 from os import path
 
+from app_logger import app_logging
 from execution_error import ExecutionError
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class DeviceDataCsvWriter:
@@ -40,11 +38,11 @@ class DeviceDataCsvWriter:
                     self.csv_writer.writeheader()
 
                 self.csv_writer.writerow(data_merged)
-                _LOGGER.debug('Written device data:\n%s to:\n%s',
-                              data_merged, file_path)
+                app_logging.debug('Written device data:\n%s to:\n%s',
+                                  data_merged, file_path)
 
         except (IOError, OSError, PermissionError):
-            _LOGGER.error('Error while writing to: [%s]', file_path)
+            app_logging.error('Error while writing to: [%s]', file_path)
 
     def write_data(self, file_path, dev_data):
         self.__write_data_to_file(file_path,

@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-import logging
 from os import listdir, makedirs, path
 from time import strftime
 
+from app_logger import app_logging
 from configs.data_config import CsvConfig
 from execution_error import ExecutionError
 from logdata.csv.device_data_csv_writer import DeviceDataCsvWriter
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class CsvDataManager:
@@ -18,7 +16,7 @@ class CsvDataManager:
     def __create_log_dir(directory_for_file):
         try:
             makedirs(directory_for_file)
-            _LOGGER.debug('Log directory: %s created', directory_for_file)
+            app_logging.debug('Log directory: %s created', directory_for_file)
         except (IOError, OSError, PermissionError) as error:
             raise ExecutionError(f'Log dir: {directory_for_file} cannot be created') from error
 
@@ -30,7 +28,7 @@ class CsvDataManager:
             for file_name in f_names:
                 if curr_date_f_name in file_name:
                     return path.join(dst_log_dir, file_name)
-            _LOGGER.debug('New file need to be created...')
+            app_logging.debug('New file need to be created...')
             return path.join(dst_log_dir, strftime(f'{curr_date_f_name}_%H:%M:%S.csv'))
 
         dst_log_dir = path.join(CsvConfig.LOG_ROOT_DIR, log_dir_file_prefix)

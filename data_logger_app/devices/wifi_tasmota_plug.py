@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 """ This module supports Lanberg/Blitzwolf/Gosund Wifi plug
 """
-
-import logging
 from collections import OrderedDict
 from json import loads
 from urllib.parse import urljoin, quote
 from urllib.request import Request, urlopen
 
+from app_logger import app_logging
 from devices.device import BaseDevice, dev_read_time_decorator
-
-_LOGGER = logging.getLogger('DevDataLogger')
 
 
 class WifiTasmotaPlug(BaseDevice):
@@ -28,7 +25,7 @@ class WifiTasmotaPlug(BaseDevice):
 
     def __get_dev_resp(self):
         if not self.dev_url:
-            _LOGGER.error('Tasmota device is not initialized')
+            app_logging.error('Tasmota device is not initialized')
             return None
         try:
             request = Request(self.dev_url)
@@ -37,7 +34,7 @@ class WifiTasmotaPlug(BaseDevice):
         # pylint: disable=W0703
         except Exception as ex:
             self.read_error_count += 1
-            _LOGGER.error(ex)
+            app_logging.error(ex)
         return None
 
     @dev_read_time_decorator
