@@ -19,7 +19,7 @@ class WifiAirPurifier(BaseDevice):
         self.device_token = dev_token
         self.wifi_device = None
 
-    def try_initialize(self):
+    def __try_initialize(self):
         if self.wifi_device is not None:
             return True
         try:
@@ -33,7 +33,7 @@ class WifiAirPurifier(BaseDevice):
         return False
 
     def __get_dev_resp(self):
-        if not self.try_initialize():
+        if not self.__try_initialize():
             app_logging.error('AirPurifier device is not initialized')
             return None
         try:

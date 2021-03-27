@@ -11,17 +11,17 @@ from devices.device import BaseDevice, dev_read_time_decorator
 
 
 class WifiTasmotaPlug(BaseDevice):
-    REQ_TIMEOUT_SEC = 2
-    STATUS_SNS_CMD = 'Status 8'
+    __REQ_TIMEOUT_SEC = 2
+    __STATUS_SNS_CMD = 'Status 8'
 
     def __init__(self, dev_name, dev_ip):
         super().__init__(dev_name=dev_name, dev_id=dev_ip)
         self.dev_url = None
-        self.initialize()
+        self.__initialize()
 
-    def initialize(self):
+    def __initialize(self):
         self.dev_url = urljoin('http://{}'.format(self.dev_id),
-                               'cm?cmnd={}'.format(quote(self.STATUS_SNS_CMD)))
+                               'cm?cmnd={}'.format(quote(self.__STATUS_SNS_CMD)))
 
     def __get_dev_resp(self):
         if not self.dev_url:
@@ -29,7 +29,7 @@ class WifiTasmotaPlug(BaseDevice):
             return None
         try:
             request = Request(self.dev_url)
-            return loads(urlopen(request, timeout=self.REQ_TIMEOUT_SEC).read().decode())
+            return loads(urlopen(request, timeout=self.__REQ_TIMEOUT_SEC).read().decode())
         # catching expected & unexpected exceptions from urllib library
         # pylint: disable=W0703
         except Exception as ex:

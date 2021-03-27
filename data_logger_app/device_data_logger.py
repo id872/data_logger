@@ -23,7 +23,8 @@ get_option.MSG = ' '.join(['1 -> Print this message.',
                            '4 -> PV_Active?',
                            '5 -> W1 sensor temperatures.',
                            '6 -> Show JSON post payload.',
-                           '7 -> Reload JSON config'])
+                           '7 -> Reload JSON config.',
+                           '8 -> Quit.'])
 
 
 def main():
@@ -33,7 +34,6 @@ def main():
     air_purifier_logger = AirPurifierLogger()
     tasmota_plug_logger = TasmotaPlugLogger()
 
-    # Getting commands
     while True:
         option = get_option()
 
@@ -58,6 +58,8 @@ def main():
             app_logging.info(get_json_post_payload_data())
         elif option == 7:
             reload_json_config()
+        elif option == 8:
+            exit(1)
 
 
 if __name__ == "__main__":

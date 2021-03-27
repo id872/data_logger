@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 from datetime import datetime
 from os import path, makedirs
@@ -13,7 +14,7 @@ def log_init():
 
     log_file_path = path.join(APP_LOGS_DIR,
                               datetime.now().strftime("app_script__%d_%m_%Y__%H:%M:%S.log"))
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
                         filename=log_file_path,
                         filemode='a',
                         format='%(asctime)s.%(msecs)03d, [%(filename)s/%(funcName)s] -- '
