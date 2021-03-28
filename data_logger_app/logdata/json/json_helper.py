@@ -41,3 +41,4 @@ class JsonRequestHelper:
         self.post_payload['hash'] = b64encode(json_config_data['api_hash'].encode()).decode()
         self.post_payload_data['username'] = json_config_data['username']
         self.post_payload_data['user_password'] = json_config_data['user_password']
+        self.api_key = json_config_data['api_key']
