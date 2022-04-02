@@ -29,6 +29,9 @@ class ModbusSanterno(BaseDevice):
     __REGISTER_PRODUCED_POWER = 1661
     __REGISTER_CPU_TEMP = 1707
     __REGISTER_RADIATOR_TEMP = 1709
+    __REGISTER_GRID_VOLTAGE = 1654
+    __REGISTER_GRID_FREQ = 1655
+    __REGISTER_GRID_CURRENT = 1656
 
     __MAX_ATTEMPTS_FOR_VALUE = 6
     __RETRY_TIME = SanternoConfig.RS_485_MODBUS_TIMEOUT + 0.01
@@ -169,6 +172,36 @@ class ModbusSanterno(BaseDevice):
 
         return None
 
+    def __read_grid_voltage(self):
+        """ Reads the grid AC Voltage """
+
+        grid_voltage = self.__read_register(self.__REGISTER_GRID_VOLTAGE)
+
+        if grid_voltage is not None:
+            return grid_voltage[0] / 10.0
+
+        return None
+
+    def __read_grid_freq(self):
+        """ Reads the grid AC frequency """
+
+        grid_freq = self.__read_register(self.__REGISTER_GRID_FREQ)
+
+        if grid_freq is not None:
+            return grid_freq[0] / 100.0
+
+        return None
+
+    def __read_grid_current(self):
+        """ Reads the grid AC Current """
+
+        grid_current = self.__read_register(self.__REGISTER_GRID_CURRENT)
+
+        if grid_current is not None:
+            return grid_current[0] / 100.0
+
+        return None
+
     def is_up(self):
         """ Checks if inverter produces power """
 
@@ -183,5 +216,8 @@ class ModbusSanterno(BaseDevice):
             'dc_current': self.__read_field_current(),
             'cpu_temperature': self.__read_cpu_temperature(),
             'radiator_temperature': self.__read_radiator_temperature(),
-            'power_produced': self.__read_produced_power()
+            'power_produced': self.__read_produced_power(),
+            'grid_voltage': self.__read_grid_voltage(),
+            'grid_freq': self.__read_grid_freq(),
+            'grid_current': self.__read_grid_current()
         })
