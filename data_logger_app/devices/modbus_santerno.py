@@ -36,6 +36,7 @@ class ModbusSanterno(BaseDevice):
     __MAX_ATTEMPTS_FOR_VALUE = 6
     __RETRY_TIME = SanternoConfig.RS_485_MODBUS_TIMEOUT + 0.01
     __H_THRESHOLD_WATT = 3600
+    __H_THRESHOLD_GRID_CURRENT = 30
 
     __MEASURING_ACTIVE_THRESHOLD_WATT = 10
 
@@ -80,8 +81,16 @@ class ModbusSanterno(BaseDevice):
         app_logging.debug('Inverter [%s] is not initialized', self.dev_name)
         return False
 
+    @staticmethod
+    def __get_register_value(reg_data, factor):
+        value = 0
+        for x in [reg_val << (reg_idx * 16) for reg_idx, reg_val in enumerate(reg_data)]:
+            value |= x
+
+        return value * factor
+
     @modbus_wait_for_not_busy
-    def __read_register(self, adr_reg, no_reg=1):
+    def __read_register(self, adr_reg, val_factor, no_reg=1):
         if not self.inverter_instrument:
             app_logging.error('Santerno device is not initialized')
             return None
@@ -92,9 +101,9 @@ class ModbusSanterno(BaseDevice):
         ModbusSanterno.__modbus_is_busy = True
         while attempts < self.__MAX_ATTEMPTS_FOR_VALUE:
             try:
-                val = self.inverter_instrument.read_registers(adr_reg, no_reg)
+                reg_read_data = self.inverter_instrument.read_registers(adr_reg, no_reg)
                 ModbusSanterno.__modbus_is_busy = False
-                return val
+                return self.__get_register_value(reg_read_data, val_factor) if reg_read_data else None
             # catching expected & unexpected exceptions from third-party library
             # pylint: disable=W0703
             except Exception as ex:
@@ -116,89 +125,54 @@ class ModbusSanterno(BaseDevice):
     def __read_current_power(self):
         """ Reads the inverter current power generated (AC) """
 
-        curr_pwr = self.__read_register(self.__REGISTER_CURRENT_POWER)
+        curr_pwr = self.__read_register(self.__REGISTER_CURRENT_POWER, 1)
 
-        if curr_pwr is not None and \
-                curr_pwr[0] < self.__H_THRESHOLD_WATT:
-            return curr_pwr[0]
+        if curr_pwr is not None and curr_pwr < self.__H_THRESHOLD_WATT:
+            return curr_pwr
         return None
 
     def __read_produced_power(self):
         """ Reads the inverter total power produced (kWh) """
 
-        pwr = self.__read_register(self.__REGISTER_PRODUCED_POWER, 2)
-
-        if pwr is not None and len(pwr) == 2:
-            return ((pwr[1] << 16) | pwr[0]) / 100.0
-        return None
+        return self.__read_register(self.__REGISTER_PRODUCED_POWER, 0.01, 2)
 
     def __read_cpu_temperature(self):
         """ Reads the inverter CPU temperature """
 
-        cpu_temp = self.__read_register(self.__REGISTER_CPU_TEMP)
-
-        if cpu_temp is not None:
-            return cpu_temp[0] / 100.0
-
-        return None
+        return self.__read_register(self.__REGISTER_CPU_TEMP, 0.01)
 
     def __read_radiator_temperature(self):
         """ Reads the inverter radiator temperature """
 
-        radiator_temp = self.__read_register(self.__REGISTER_RADIATOR_TEMP)
-
-        if radiator_temp is not None:
-            return radiator_temp[0] / 100.0
-
-        return None
+        return self.__read_register(self.__REGISTER_RADIATOR_TEMP, 0.01)
 
     def __read_field_voltage(self):
         """ Reads the inverter DC Voltage """
 
-        voltage = self.__read_register(self.__REGISTER_FIELD_VOLTAGE)
-
-        if voltage is not None:
-            return voltage[0] / 10.0
-
-        return None
+        return self.__read_register(self.__REGISTER_FIELD_VOLTAGE, 0.1)
 
     def __read_field_current(self):
         """ Reads the inverter DC Current """
 
-        current = self.__read_register(self.__REGISTER_FIELD_CURRENT)
-
-        if current is not None:
-            return current[0] / 100.0
-
-        return None
+        return self.__read_register(self.__REGISTER_FIELD_CURRENT, 0.01)
 
     def __read_grid_voltage(self):
         """ Reads the grid AC Voltage """
 
-        grid_voltage = self.__read_register(self.__REGISTER_GRID_VOLTAGE)
-
-        if grid_voltage is not None:
-            return grid_voltage[0] / 10.0
-
-        return None
+        return self.__read_register(self.__REGISTER_GRID_VOLTAGE, 0.1)
 
     def __read_grid_freq(self):
         """ Reads the grid AC frequency """
 
-        grid_freq = self.__read_register(self.__REGISTER_GRID_FREQ)
-
-        if grid_freq is not None:
-            return grid_freq[0] / 100.0
-
-        return None
+        return self.__read_register(self.__REGISTER_GRID_FREQ, 0.01)
 
     def __read_grid_current(self):
         """ Reads the grid AC Current """
 
-        grid_current = self.__read_register(self.__REGISTER_GRID_CURRENT)
+        grid_current = self.__read_register(self.__REGISTER_GRID_CURRENT, 0.01)
 
-        if grid_current is not None:
-            return grid_current[0] / 100.0
+        if grid_current is not None and grid_current < self.__H_THRESHOLD_GRID_CURRENT:
+            return grid_current
 
         return None
 

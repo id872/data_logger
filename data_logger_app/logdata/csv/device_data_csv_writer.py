@@ -16,7 +16,7 @@ class DeviceDataCsvWriter:
             raise ExecutionError('Device data and device names length mismatch')
 
         header_to_zip = [f'{n}_{key}' for n, d in zip(dev_names, dev_data) for key in d.keys()]
-        data_to_zip = [v for d in dev_data for v in d.values()]
+        data_to_zip = [f'{v:.2f}' for d in dev_data for v in d.values()]
 
         header_to_zip.insert(0, 'Date_Time')
         data_to_zip.insert(0, log_date_time)
