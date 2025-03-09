@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from time import time
 
 
@@ -23,9 +22,11 @@ class BaseDevice:
     def get_read_time(self):
         if self.read_time is not None:
             return self.read_time
-        return float('nan')
+        return float("nan")
 
     def __str__(self):
-        return f'{self.dev_name} [{self.dev_id}] -> ' \
-               f'data read time: {self.get_read_time():.2f} ms. ' \
-               f'Read error counter: {self.read_error_count}'
+        return (
+            f"{self.dev_name} [{self.dev_id}] -> "
+            f"data read time: {self.get_read_time():.2f} ms. "
+            f"Read error counter: {self.read_error_count}"
+        )

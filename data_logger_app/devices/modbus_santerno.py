@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-""" This module supports communication with Santerno Inverters
-"""
+"""This module supports communication with Santerno Inverters"""
+
 from collections import OrderedDict
 from importlib import reload
 from time import sleep
 
 import minimalmodbus
 
-from app_logger import app_logging
 from configs.modbus_config import SanternoConfig
 from devices.device import BaseDevice, dev_read_time_decorator
+from loggers.app_logger import app_logging
 
 
 def modbus_wait_for_not_busy(func_decorated):
@@ -33,7 +32,7 @@ class ModbusSanterno(BaseDevice):
     __REGISTER_GRID_FREQ = 1655
     __REGISTER_GRID_CURRENT = 1656
 
-    __MAX_ATTEMPTS_FOR_VALUE = 6
+    __MAX_ATTEMPTS_FOR_VALUE = 20
     __RETRY_TIME = SanternoConfig.RS_485_MODBUS_TIMEOUT + 0.01
     __H_THRESHOLD_WATT = 3600
     __H_THRESHOLD_GRID_CURRENT = 30
@@ -54,16 +53,14 @@ class ModbusSanterno(BaseDevice):
 
     @staticmethod
     def reload_minimalmodbus():
-        app_logging.debug('minimalmodbus reloading...')
+        app_logging.debug("minimalmodbus reloading...")
         reload(minimalmodbus)
 
     def __try_initialize(self):
         if self.inverter_instrument is not None:
             return True
         try:
-            self.inverter_instrument = minimalmodbus.Instrument(
-                self.tty_port,
-                self.dev_id)
+            self.inverter_instrument = minimalmodbus.Instrument(self.tty_port, self.dev_id)
         # catching expected & unexpected exceptions from third-party library
         # pylint: disable=W0703
         except Exception as error:
@@ -74,11 +71,10 @@ class ModbusSanterno(BaseDevice):
             self.inverter_instrument.serial.stopbits = SanternoConfig.RS_485_STOP_BITS
             self.inverter_instrument.mode = SanternoConfig.RS_485_MODBUS_MODE
             self.inverter_instrument.serial.timeout = SanternoConfig.RS_485_MODBUS_TIMEOUT
-            self.inverter_instrument.close_port_after_each_call = \
-                SanternoConfig.RS_485_CLOSE_PORT_AFTER_CALL
-            app_logging.debug('Inverter %s on %s is ready', self.dev_name, self.tty_port)
+            self.inverter_instrument.close_port_after_each_call = SanternoConfig.RS_485_CLOSE_PORT_AFTER_CALL
+            app_logging.debug("Inverter %s on %s is ready", self.dev_name, self.tty_port)
             return True
-        app_logging.debug('Inverter [%s] is not initialized', self.dev_name)
+        app_logging.debug("Inverter [%s] is not initialized", self.dev_name)
         return False
 
     @staticmethod
@@ -92,7 +88,7 @@ class ModbusSanterno(BaseDevice):
     @modbus_wait_for_not_busy
     def __read_register(self, adr_reg, val_factor, no_reg=1):
         if not self.inverter_instrument:
-            app_logging.error('Santerno device is not initialized')
+            app_logging.error("Santerno device is not initialized")
             return None
 
         attempts = 0
@@ -114,16 +110,18 @@ class ModbusSanterno(BaseDevice):
             sleep(self.__RETRY_TIME)
 
         ModbusSanterno.__modbus_is_busy = False
-        app_logging.debug("[%s] Value could not be read. Attempts [%d] Modbus address [%s]\n%s",
-                          self.dev_name,
-                          attempts,
-                          adr_reg,
-                          '\n'.join(errors))
+        app_logging.debug(
+            "[%s] Value could not be read. Attempts [%d] Modbus address [%s]\n%s",
+            self.dev_name,
+            attempts,
+            adr_reg,
+            "\n".join(errors),
+        )
 
         return None
 
     def __read_current_power(self):
-        """ Reads the inverter current power generated (AC) """
+        """Reads the inverter current power generated (AC)"""
 
         curr_pwr = self.__read_register(self.__REGISTER_CURRENT_POWER, 1)
 
@@ -132,42 +130,42 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def __read_produced_power(self):
-        """ Reads the inverter total power produced (kWh) """
+        """Reads the inverter total power produced (kWh)"""
 
         return self.__read_register(self.__REGISTER_PRODUCED_POWER, 0.01, 2)
 
     def __read_cpu_temperature(self):
-        """ Reads the inverter CPU temperature """
+        """Reads the inverter CPU temperature"""
 
         return self.__read_register(self.__REGISTER_CPU_TEMP, 0.01)
 
     def __read_radiator_temperature(self):
-        """ Reads the inverter radiator temperature """
+        """Reads the inverter radiator temperature"""
 
         return self.__read_register(self.__REGISTER_RADIATOR_TEMP, 0.01)
 
     def __read_field_voltage(self):
-        """ Reads the inverter DC Voltage """
+        """Reads the inverter DC Voltage"""
 
         return self.__read_register(self.__REGISTER_FIELD_VOLTAGE, 0.1)
 
     def __read_field_current(self):
-        """ Reads the inverter DC Current """
+        """Reads the inverter DC Current"""
 
         return self.__read_register(self.__REGISTER_FIELD_CURRENT, 0.01)
 
     def __read_grid_voltage(self):
-        """ Reads the grid AC Voltage """
+        """Reads the grid AC Voltage"""
 
         return self.__read_register(self.__REGISTER_GRID_VOLTAGE, 0.1)
 
     def __read_grid_freq(self):
-        """ Reads the grid AC frequency """
+        """Reads the grid AC frequency"""
 
         return self.__read_register(self.__REGISTER_GRID_FREQ, 0.01)
 
     def __read_grid_current(self):
-        """ Reads the grid AC Current """
+        """Reads the grid AC Current"""
 
         grid_current = self.__read_register(self.__REGISTER_GRID_CURRENT, 0.01)
 
@@ -177,21 +175,23 @@ class ModbusSanterno(BaseDevice):
         return None
 
     def is_up(self):
-        """ Checks if inverter produces power """
+        """Checks if inverter produces power"""
 
         power_val = self.__read_current_power()
         return power_val is not None and power_val > self.__MEASURING_ACTIVE_THRESHOLD_WATT
 
     @dev_read_time_decorator
     def read_data_json(self) -> dict or None:
-        return OrderedDict({
-            'ac_power': self.__read_current_power(),
-            'dc_voltage': self.__read_field_voltage(),
-            'dc_current': self.__read_field_current(),
-            'cpu_temperature': self.__read_cpu_temperature(),
-            'radiator_temperature': self.__read_radiator_temperature(),
-            'power_produced': self.__read_produced_power(),
-            'grid_voltage': self.__read_grid_voltage(),
-            'grid_freq': self.__read_grid_freq(),
-            'grid_current': self.__read_grid_current()
-        })
+        return OrderedDict(
+            {
+                "ac_power": self.__read_current_power(),
+                "dc_voltage": self.__read_field_voltage(),
+                "dc_current": self.__read_field_current(),
+                "cpu_temperature": self.__read_cpu_temperature(),
+                "radiator_temperature": self.__read_radiator_temperature(),
+                "power_produced": self.__read_produced_power(),
+                "grid_voltage": self.__read_grid_voltage(),
+                "grid_freq": self.__read_grid_freq(),
+                "grid_current": self.__read_grid_current(),
+            }
+        )

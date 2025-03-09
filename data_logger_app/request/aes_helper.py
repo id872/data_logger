@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import base64
 import zlib
 from enum import Enum
@@ -42,7 +41,7 @@ class AesHelper:
     @output_decorator
     def encrypt_str(self, plain_str: str, iv_concat=True) -> bytes or str:
         if not plain_str:
-            raise ValueError('String is empty')
+            raise ValueError("String is empty")
 
         cipher = AES.new(self.key, self.aes_mode)
 
@@ -54,11 +53,11 @@ class AesHelper:
             data_bytes = zlib.compress(plain_str.encode())
 
         if iv_concat:
-            return b''.join([self.init_vector, cipher.encrypt(data_bytes)])
+            return b"".join([self.init_vector, cipher.encrypt(data_bytes)])
         return cipher.encrypt(data_bytes)
 
     def encrypt_json(self, json_data: dict, iv_concat=True) -> bytes or str:
         if not json_data:
-            raise ValueError('Dictionary is empty')
+            raise ValueError("Dictionary is empty")
 
         return self.encrypt_str(dumps(json_data), iv_concat)
