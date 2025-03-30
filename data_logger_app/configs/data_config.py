@@ -6,6 +6,7 @@ class JsonRequestType(str, Enum):
     DS18B20 = "ds18b20_readouts"
     PURIFIER = "purifier_readouts"
     TASMOTA_PLUG = "tasmota_readouts"
+    I2C_AHT_ENS = "aht_ens_readouts"
 
     def __str__(self) -> str:
         return self.value
@@ -19,6 +20,7 @@ class CsvConfig:
     DS18B20_LOG_DIR_AND_FILE_PREFIX = "Temperature"
     PURIFIER_LOG_DIR_AND_FILE_PREFIX = "Purifier"
     TASMOTA_PLUG_LOG_DIR_AND_FILE_PREFIX = "Tasmota"
+    AHT_ENS_LOG_DIR_AND_FILE_PREFIX = "AhtEns"
 
 
 class PostRequestConfig:
